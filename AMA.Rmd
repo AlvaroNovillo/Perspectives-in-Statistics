@@ -2,15 +2,16 @@
 output: 
   stevetemplates::article:
     fig_caption: true
+  
 bibliography: master.bib
 biblio-style: apsr
-title: "A Technical Report under $AMAˆ{-1}$ perspective"
+title: "Constructing a Structural Equation Model for Predicting Biological Age: A Technical Report under $AMAˆ{-1}$ perspective"
 thanks: "Replication files are available on the author's Github account (https://github.com/AlvaroNovillo). **Current version**: `r format(Sys.time(), '%B %d, %Y')`; **Corresponding author**: alvanovi@ucm.es."
 author:
 - name: Álvaro Novillo Correas
   affiliation: 100483441@alumnos.uc3m.es
 abstract: "This article discusses the implementation of $AMA^{-1}$, a methodology that emphasizes the idea that statistics is used to solve real-world problems. The acronym $AMA^{-1}$, represents the three fundamental steps in this methodology: understanding the real-world problem and related data (A), translating the real-world problem into a statistical problem and solving it (M), and translating the statistical results back into terms of the original problem ($A^{-1}$). The article presents basic aspects of each step along with an example of its implementation"
-keywords: "$AMA^{-1}$, Statistics"
+keywords: "$AMA^{-1}$, SEM"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 geometry: margin=1in
 fontfamily: mathpazo
@@ -110,7 +111,7 @@ mp <- model_parameters(fit)
 print_md(mp)
 ```
 
-Based on these results, given the factor loading (Table. 1) for weight and sick we can conclude that they are a significant predictor of biological age in these animals. Furthermore, the regression coefficient (Table 2) of 0.934 indicates a positive correlation between biological age and chronological age, confirming a direct relationship between the latent and observed variables. Given the $95\%$ confidence interval calculated for this coefficient, it is not possible to make any claims regarding whether the animals' chronological age corresponds to their biological age. To do so, it would be necessary to narrow the confidence interval, which could be achieved by increasing the sample size of the population.
+Based on these results, given the factor loading (Table. 1) for weight and sick we can conclude that they are a significant predictor of biological age in these animals. Furthermore, the regression coefficient (Table. 2) of 0.934 indicates a positive correlation between biological age and chronological age, confirming a direct relationship between the latent and observed variables. Given the $95\%$ confidence interval calculated for this coefficient, it is not possible to make any claims regarding whether the animals' chronological age corresponds to their biological age. To do so, it would be necessary to narrow the confidence interval, which could be achieved by increasing the sample size of the population.
 
 # Results ($A^{-1}$)
 
