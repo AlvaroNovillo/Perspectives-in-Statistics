@@ -9,9 +9,7 @@ thanks: "Replication files are available on the author's Github account (https:/
 author:
 - name: Álvaro Novillo Correas
   affiliation: 100483441@alumnos.uc3m.es
-- name: Paolo Salvatore Lodato 
-  affiliation: 100493512@alumnos.uc3m.es
-abstract: "This article discusses the implementation of $AMA^{-1}$, a methodology that emphasizes the idea that statistics is used to solve real-world problems. The acronym $AMA^{-1}$, represents the three fundamental steps in this methodology: understanding the real-world problem and related data (A), translating the real-world problem into a statistical problem and solving it (M), and translating the statistical results back into terms of the original problem (A-1). The article presents basic aspects of each step along with an example of its implementation"
+abstract: "This article discusses the implementation of $AMA^{-1}$, a methodology that emphasizes the idea that statistics is used to solve real-world problems. The acronym $AMA^{-1}$, represents the three fundamental steps in this methodology: understanding the real-world problem and related data (A), translating the real-world problem into a statistical problem and solving it (M), and translating the statistical results back into terms of the original problem ($A^{-1}$). The article presents basic aspects of each step along with an example of its implementation"
 keywords: "$AMA^{-1}$, Statistics"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 geometry: margin=1in
@@ -38,10 +36,8 @@ knitr::opts_chunk$set(cache=TRUE,
 ```
 
 
-## Introduction (A)
-In this case, we will implement the AMA-1 methodology in R using the dataset "bioage.csv"^[The dataset can be found at: https://aulaglobal.uc3m.es/mod/resource/view.php?id=4711061]. To do so, we will follow the three fundamental steps of the methodology: understanding the real-world problem and related data (A), translating the real-world problem into a statistical problem and solving it (M), and translating the statistical results back into terms of the original problem (A-1).
-
-The dataset used includes data on a specific animal species, detailing their weight, illness status (1= sick), and chronological age. Our article aims to investigate if there exists a method of determining the biological age of these animals and how it compares to their chronological age.
+# Introduction (A)
+In this article, we will implement the AMA-1 methodology in R, dealing with the challenge of estimating biological age using observed health indicators. The dataset^[The dataset can be found at: https://aulaglobal.uc3m.es/mod/resource/view.php?id=4711061] comprises information on weight, sickness status, and chronological age. To do so, we will follow the three fundamental steps of the methodology: understanding the real-world problem and related data (A), translating the real-world problem into a statistical problem and solving it (M), and translating the statistical results back into terms of the original problem (A-1).
 
 ```{r summary, echo=FALSE, fig.cap= "Histogram of the variables contained in the dataset"}
 # Step A: Understanding the real-world problem and related data
@@ -65,39 +61,65 @@ colnames(data)[2] <- "sick"
 
 ```
 
-Table 1 present the preliminary analysis of the dataset. The results indicate that over half of the animals in our sample are affected by illness, with an illness status average of 0.6. Additionally, the age variable is left-skewed, suggesting a higher frequency of middle-aged animals.
+Making a preliminary analysis of the dataset, we can see that over half of the animals in our sample are affected by illness, with an illness status average of 0.6. Additionally, the age variable is left-skewed, suggesting a higher frequency of middle-aged animals. 
 
 
-## Method (M)
-We will try to determine the biological age of these animals using a linear model with the variables at hand. In this case, the model used will be the following
-$$
-age^{*} = \beta_0 + \beta_1 \cdot weight + \beta_2 \cdot sick
-$$
+# Method (M)
+Employing Structural Equation Modeling (SEM)^[The lavaan package in R is employed for model estimation using the Maximum Likelihood (ML) method. The algorithm iteratively refines parameter estimates to maximize the likelihood of observing the given data under the specified model. See @lavaan for further insight.], we construct a model to predict biological age as a latent variable. The relationship between the latent variable and each observed variable is quantified by the factor loadings. Standardization is applied to the observed variables to facilitate meaningful interpretation of coefficients and improve numerical stability in the estimation process.
 
+Next, to make a comparison between biological age and measured chronological age, a regression analysis will be conducted using obtained biological age and chronological age values.  If the regression coefficient is found to be significant and approaches one, it would demonstrate the correlation between the latent and observed variables, indicating that the animals are undergoing regular and healthy aging processes.
 
-In this case, we will compare the predicted age ($age^{*}$), which we will consider as the biological age of the animals, with their chronological age. Using our 10 observations of our dataset, we get the following results:
+Using our 10 observations of our dataset, we get the following results:
 
 ```{r, echo = FALSE}
 # Step M: Translating the real-world problem into a statistical problem and solving it
 # Fit a linear regression model to the data
-model <- lm(age ~ ., data=data)
-#summary(model)
-mp <- model_parameters(model)
+#model <- lm(age ~ ., data=data)
+# Load the required package
+# install.packages("lavaan")
+library(lavaan)
+
+# Standardize the variables
+df_standardized <- data.frame(
+  weight = scale(data$weight),
+  sick = scale(data$sick),
+  age = scale(data$age)
+)
+
+# Create a model with standardized variables
+model <- '
+  # Measurement model
+    bio_age =~ weight + sick
+
+  # Regression model
+    age ~ bio_age
+'
+
+# Fit the model
+fit <- sem(model, data = df_standardized)
+
+
+# Get the latent variable values (biological age)
+latent_vars <- as.data.frame(fitted(fit, "lv"))
+
+
+
+
+#summary(fit,standardized=TRUE, fit.measures=TRUE)
+mp <- model_parameters(fit)
 print_md(mp)
 ```
-Based on these results, we can conclude that weight is a significant predictor of biological age in these animals, while illness status (sick) does not have a significant effect on biological age. The model can be used to predict the biological age of animals based on their weight ($R^2 / R^2_{adj}$	0.815 / 0.763)^[The $R^2_{adj}$ is a measure of goodness of ft of the multiple linear regression models. See (@garcia-portugues2023notes) for further
-insight.], and we can compare this predicted biological age to their chronological age to determine if they are older or younger than expected. Further analysis using innovative ideas such as machine learning algorithms or Bayesian inference could provide additional insights into the biological age of these animals.
 
-Now we need to verify whether the assumptions of the linear model have been met. As seen in Fig. 1, the model fulfils the assumptions, albeit with some likely observations being flagged as problematic in the top right plot.
+Based on these results, given the factor loading (Table. 1) for weight and sick we can conclude that they are a significant predictor of biological age in these animals. Furthermore, the regression coefficient (Table 2) of 0.934 indicates a positive correlation between biological age and chronological age, confirming a direct relationship between the latent and observed variables. Given the $95\%$ confidence interval calculated for this coefficient, it is not possible to make any claims regarding whether the animals' chronological age corresponds to their biological age. To do so, it would be necessary to narrow the confidence interval, which could be achieved by increasing the sample size of the population.
 
+# Results ($A^{-1}$)
 
-## Results ($A^{-1}$)
+The constructed Structural Equation Model (SEM) serves as a valuable framework for unraveling the intricate connections between observed health indicators and the latent construct of biological age. The model, supported by strong factor loadings and a significant regression coefficient, underscores the pivotal role of sickness status and weight in capturing the essence of biological aging.
 
-We can use the model equation to predict the biological age of each animal in the dataset and compare it to their chronological age. If the predicted biological age is higher than the chronological age, it indicates that the animal is aging faster than expected, while if it is lower, it indicates that the animal is aging slower than expected.
+While the model exhibits commendable fit indices, acknowledging its limitations is imperative for a comprehensive interpretation. The current sample size, while sufficient for initial exploration, beckons for expansion to enhance robustness and generalizability. A larger and more diverse dataset would fortify the model's capacity to discern nuanced patterns within the aging process.
 
-Fig. 2 represents the biological predicted age, with respect to the chronological age of the animals. Animals (points) located above the dotted diagonal line are aging more slowly than expected, while those situated below the line are aging at a faster rate than expected. The color of the data points denotes their illness status. As predicted, this variable has no significant effect on predicting the animals' biological age. 
+Furthermore, recognizing the influence of contextual factors is crucial. Incorporating a richer contextual understanding of the database could empower us to address the intricacies of biological age estimation with a more sophisticated statistical approach.
 
-In our study, it was discovered that 70% of the animals in our sample are undergoing accelerated aging. Unfortunately, due to the lack of context provided, we are unable to provide clear justification for these findings. More context would also allow us to tackle the problem with a more sofisticated statistical approach 
 
 # References
 \setlength{\parindent}{-0.2in}
@@ -106,40 +128,9 @@ In our study, it was discovered that 70% of the animals in our sample are underg
 \vspace*{-0.2in}
 \noindent
 
-```{r, echo=FALSE,fig.cap= "Scatterplot of the predicted biological age of the animals based on the linear regression model versus their chronological age. The illness status of each subject is represented as red if their are sick, and blue if they are healthy."}
-# Assuming 'model' is your linear regression model
-# You can use the 'predict' function to get the predicted values
-predicted_age <- predict(model, newdata = data)
-
-# Load the ggplot2 library
-library(ggplot2)
-
-# Create a data frame with actual, predicted values, and sick variable
-plot_data <- data.frame(ActualAge = data$age, PredictedAge = predicted_age, sick = data$sick)
-
-# Create a scatterplot using ggplot2 with color mapping based on 'sick'
-ggplot(plot_data, aes(x = ActualAge, y = PredictedAge, color = factor(sick))) +
-  geom_point() +
-  geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
-  labs(x = "Chronological Age", y = "Predicted Biological Age") +
-  scale_color_manual(values = c("blue", "red"), name = "Sick") +  # Customize color scale
-  theme_minimal() +
-  theme(legend.position = "top")  # Position the legend at the top
-
-# Calculate the percentage of animals that are above and below the diagonal line
-above_line <- sum(predicted_age > data$age)
-below_line <- sum(predicted_age < data$age)
-total <- length(predicted_age)
-above_percent <- above_line / total * 100
-below_percent <- below_line / total * 100
 
 
 
-```
 
 
-```{r lm_check, echo=FALSE, fig.cap= "Model assumptions"}
-par(mfrow=c(2,2))
-plot(model)
-```
 
