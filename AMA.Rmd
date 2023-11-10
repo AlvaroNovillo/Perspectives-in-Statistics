@@ -81,9 +81,6 @@ model <- '
 
 ```
 
-
-Using our 10 observations of our dataset, we get the following results:
-
 ```{r, echo = FALSE}
 # Step M: Translating the real-world problem into a statistical problem and solving it
 # Fit a linear regression model to the data
