@@ -1,0 +1,88 @@
+---
+output: 
+  stevetemplates::article:
+    fig_caption: true
+#bibliography: master.bib
+biblio-style: apsr
+title: "A Technical Report under $AMAˆ{-1}$ perspective"
+thanks: "Replication files are available on the author's Github account (https://github.com/AlvaroNovillo). **Current version**: `r format(Sys.time(), '%B %d, %Y')`; **Corresponding author**: alvanovi@ucm.es."
+author:
+- name: Álvaro Novillo
+  affiliation: Universidad Carlos III
+- name: Polo
+  affiliation: Universidad Carlos III
+abstract: "This article discusses the implementation of $AMA^{-1}$, a methodology that emphasizes the idea that statistics is used to solve real-world problems. The acronym $AMA^{-1}$, represents the three fundamental steps in this methodology: understanding the real-world problem and related data (A), translating the real-world problem into a statistical problem and solving it (M), and translating the statistical results back into terms of the original problem (A-1). The article presents basic aspects of each step along with an example of its implementation"
+keywords: "$AMA^{-1}$, Statistics"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+geometry: margin=1in
+fontfamily: mathpazo
+fontsize: 11pt
+# spacing: double
+endnote: no
+
+---
+
+```{r setup, include=FALSE}
+library(sjPlot)
+library(ggplot2)  
+library(kableExtra)
+library(parameters)
+knitr::opts_chunk$set(cache=TRUE,
+                      message=FALSE, warning=FALSE,
+                      fig.path='figs/',
+                      cache.path = '_cache/',
+                      fig.process = function(x) {
+                      x2 = sub('-\\d+([.][a-z]+)$', '\\1', x)
+                      if (file.rename(x, x2)) x2 else x
+                      })
+```
+
+
+## Introduction (A)
+In this case, we will implement the AMA-1 methodology in R using the dataset "bioage.csv". To do so, we will follow the three fundamental steps of the methodology: understanding the real-world problem and related data (A), translating the real-world problem into a statistical problem and solving it (M), and translating the statistical results back into terms of the original problem (A-1).
+
+The dataset used includes data on a specific animal species, detailing their weight, illness status (1= sick), and chronological age. Our article aims to investigate if there exists a method of determining the biological age of these animals and how it compares to their chronological age.
+
+```{r summary, echo=FALSE, fig.cap= "Histogram of the variables contained in the dataset"}
+# Step A: Understanding the real-world problem and related data
+# Read the dataset
+data <- read.csv("bioage.csv", sep=";")
+
+# Get summary statistics for each variable
+summary(data) %>%
+  kbl(booktabs = T, caption = "Summary of the dataset") %>%
+  kable_styling(position = "center")
+
+# Create histograms of the variables
+#par(mfrow = c(1, 3))  # Set up a 1x3 layout for the histograms
+
+#hist(data$weight, main = "Weight Histogram", xlab = "Weight")
+#hist(data$seek, main = "Seek Histogram", xlab = "Seek")
+#hist(data$age, main = "Age Histogram", xlab = "Age")
+
+```
+
+Table 1 present the preliminary analysis of the dataset. The results indicate that over half of the animals in our sample are affected by illness, with an illness status average of 0.6. Additionally, the age variable is left-skewed, suggesting a higher frequency of middle-aged animals.
+
+
+## Method (M)
+Observations	10
+R2 / R2 adjusted	0.815 / 0.763
+```{r, echo = FALSE}
+# Step M: Translating the real-world problem into a statistical problem and solving it
+# Fit a linear regression model to the data
+model <- lm(age ~ weight + seek, data=data)
+#summary(model)
+mp <- model_parameters(model)
+print_md(mp)
+```
+
+## Results ($A^{-1}$)
+
+```{r}
+# Step A-1: Translating the statistical results back into terms of the original problem
+# Create a scatter plot of weight versus age with a regression line
+library(ggplot2)
+ggplot(data, aes(x=weight, y=age)) + geom_point() + geom_smooth(method="lm")
+```
+
