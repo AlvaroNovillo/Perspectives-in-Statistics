@@ -70,6 +70,18 @@ Employing Structural Equation Modeling (SEM)^[The lavaan package in R is employe
 
 Next, to make a comparison between biological age and measured chronological age, a regression analysis will be conducted using obtained biological age and chronological age values.  If the regression coefficient is found to be significant and approaches one, it would demonstrate the correlation between the latent and observed variables, indicating that the animals are undergoing regular and healthy aging processes.
 
+```{r}
+model <- '
+  # Measurement model
+    bio_age =~ weight + sick
+
+  # Regression model
+    age ~ bio_age
+'
+
+```
+
+
 Using our 10 observations of our dataset, we get the following results:
 
 ```{r, echo = FALSE}
