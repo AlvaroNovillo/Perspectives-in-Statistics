@@ -2,7 +2,8 @@
 output: 
   stevetemplates::article:
     fig_caption: true
-  
+    includes:
+      in_header: cols.tex
 bibliography: master.bib
 biblio-style: apsr
 title: "Constructing a Structural Equation Model for Predicting Biological Age: A Technical Report under $AMAˆ{-1}$ perspective"
@@ -10,12 +11,14 @@ thanks: "Replication files are available on the author's Github account (https:/
 author:
 - name: Álvaro Novillo Correas
   affiliation: 100483441@alumnos.uc3m.es
+- name: Paolo Salvatore Lodato Olano
+  affiliation: 100493512@alumnos.uc3m.es
 abstract: "This article discusses the implementation of $AMA^{-1}$, a methodology that emphasizes the idea that statistics is used to solve real-world problems. The acronym $AMA^{-1}$, represents the three fundamental steps in this methodology: understanding the real-world problem and related data (A), translating the real-world problem into a statistical problem and solving it (M), and translating the statistical results back into terms of the original problem ($A^{-1}$). The article presents basic aspects of each step along with an example of its implementation"
 keywords: "$AMA^{-1}$, SEM"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 geometry: margin=1in
 fontfamily: mathpazo
-fontsize: 11pt
+fontsize: 10pt
 # spacing: double
 endnote: no
 
@@ -26,6 +29,7 @@ library(sjPlot)
 library(ggplot2)  
 library(kableExtra)
 library(parameters)
+library(semPlot)
 knitr::opts_chunk$set(cache=TRUE,
                       message=FALSE, warning=FALSE,
                       fig.path='figs/',
@@ -70,7 +74,7 @@ Employing Structural Equation Modeling (SEM)^[The lavaan package in R is employe
 
 Next, to make a comparison between biological age and measured chronological age, a regression analysis will be conducted using obtained biological age and chronological age values.  If the regression coefficient is found to be significant and approaches one, it would demonstrate the correlation between the latent and observed variables, indicating that the animals are undergoing regular and healthy aging processes.
 
-```{r}
+```{r, echo=FALSE}
 model <- '
   # Measurement model
     bio_age =~ weight + sick
@@ -126,10 +130,24 @@ Based on these results, given the factor loading (Table. 1) for weight and sick 
 
 The constructed Structural Equation Model (SEM) serves as a valuable framework for unraveling the intricate connections between observed health indicators and the latent construct of biological age. The model, supported by strong factor loadings and a significant regression coefficient, underscores the pivotal role of sickness status and weight in capturing the essence of biological aging.
 
+
+:::::: {.cols data-latex=""}
+
+::: {.col data-latex="{0.6\textwidth}"}
+```{r, echo=FALSE, dev.args = list(bg = 'transparent'), fig.width = 3, fig.height = 3, warning=FALSE}
+semPaths(fit, "std",title=FALSE)
+```
+:::
+
+::: {.col data-latex="{0.4\textwidth}"}
+Using the ${\tt semPlot}$ package we create path diagrams to visualize the structural equation model (SEM). Here, nodes represent variables and arrows indicate directional relationships between them. The numbers on arrows represent the path coefficients (regression weights) between variables.
+:::
+
+::::::
+
 While the model exhibits commendable fit indices, acknowledging its limitations is imperative for a comprehensive interpretation. The current sample size, while sufficient for initial exploration, beckons for expansion to enhance robustness and generalizability. A larger and more diverse dataset would fortify the model's capacity to discern nuanced patterns within the aging process.
 
 Furthermore, recognizing the influence of contextual factors is crucial. Incorporating a richer contextual understanding of the database could empower us to address the intricacies of biological age estimation with a more sophisticated statistical approach.
-
 
 # References
 \setlength{\parindent}{-0.2in}
